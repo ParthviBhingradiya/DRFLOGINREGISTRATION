@@ -1,26 +1,39 @@
 from django.shortcuts import render
 from .models import Student
-from .serializers import StudentSerializer
-from rest_framework import viewsets
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
+from .serializers import StudentSerializer,StudentLoginSerializer
+from rest_framework.views import APIView
+from django.contrib.auth import authenticate
 from rest_framework.response import Response
-# Create your views here.
-
-# class StudentRegister(viewsets.ModelViewSet):
-#     queryset=Student.objects.all()
-#     serialize_classes=StudentSerializer
-#     # authentication_classes=[JWTAuthentication]
-#     # permission_classes=[IsAuthenticated]
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
-class StudentRegister(viewsets.ModelViewSet):
-    queryset=Student.objects.all()
-    serializer_class=StudentSerializer
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
 
-class StudentLogin(viewsets.ModelViewSet):
-    """
-    An endpoint to authenticate existing users using their email and password.
-    """
-    def post(self,request,formate=None):
-        return Response({'msg':'Login Success'})
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+class StudentRegister(APIView):
+    def post(self, request, format=None):
+        serializer = StudentSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save()
+            token = get_tokens_for_user(user)  
+            return Response({'token': token, 'msg': 'Registration Success.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StudentLogin(APIView):
+    def post(self, request, format=None):
+        serializer = StudentLoginSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            username = serializer.validated_data.get('username')  
+            password = serializer.validated_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                token = get_tokens_for_user(user)
+                return Response({'token': token, 'msg': 'Login Success.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
