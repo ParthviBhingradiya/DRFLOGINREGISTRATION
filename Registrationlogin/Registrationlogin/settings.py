@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'api',
+    'api',        
+    "rest_framework_simplejwt.token_blacklist",
+
 ]
 
 MIDDLEWARE = [
@@ -80,7 +82,7 @@ WSGI_APPLICATION = 'Registrationlogin.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "StudentLogin",
+        "NAME": "Studentlogin",
         "USER": "postgres",
         "PASSWORD": "123",
         "HOST": "127.0.0.1",
@@ -137,10 +139,15 @@ REST_FRAMEWORK = {
     )}
 
 
-AUTH_USER_MODEL = "api.UserManager"
-AUTH_USER_MODEL = "api.User"
+# AUTH_USER_MODEL = "api.UserManager"
+AUTH_USER_MODEL = 'api.User'  
+
+
 
 SIMPLE_JWT={
     'ACCESS_TOKEN_LIFETIME':timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME':timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS':True,
+    'BLACKLIST_AFTER_ROTATION': True, 
+    'AUTH_HEADER_TYPES': ("Bearer",),
 }
