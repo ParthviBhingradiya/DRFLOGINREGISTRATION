@@ -146,9 +146,11 @@ class UpdateApplicationStatus(APIView):
         try:
             application = get_object_or_404(ApplicationForm, id=id)
 
-            # Ensure only teachers can update application status
             if not hasattr(request.user, 'role') or request.user.role != 'teacher':
                 return Response({"error": "Only teachers can update application status."}, status=status.HTTP_403_FORBIDDEN)
+            
+            if application.status in ["Accepted", "Rejected"]:
+                return Response({"error": "Application status is already finalized and cannot be changed."}, status=status.HTTP_400_BAD_REQUEST)
 
             new_status = request.data.get("status")
             if not new_status:
@@ -157,11 +159,8 @@ class UpdateApplicationStatus(APIView):
             application.status = new_status  
             application.save() 
 
-            return Response({
-                "message": "Status updated successfully!",
-                "application_id": application.id,
-                "status": application.status
-            }, status=status.HTTP_200_OK)
+            return Response({"message": "Status updated successfully!","application_id": application.id,"status": application.status},
+                             status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": "An unexpected error occurred", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

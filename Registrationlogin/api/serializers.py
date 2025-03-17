@@ -55,12 +55,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class StudentApplicationSerializer(serializers.ModelSerializer):
-    study_mode = serializers.ChoiceField(choices=[('online','Online'),('offline','Offline')],required=True)
+    study_mode = serializers.ChoiceField(choices=[('online', 'Online'), ('offline', 'Offline')], required=True)
 
     class Meta:
-        model=ApplicationForm
-        fields=['id','user','university_name','program_name','description','study_mode','from_date', 'to_date']
+        model = ApplicationForm
+        fields = ['id', 'user', 'university_name', 'program_name', 'description', 'study_mode', 'from_date', 'to_date']
 
+    def validate(self, data):
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
+
+        if from_date and to_date and to_date <= from_date:
+            raise serializers.ValidationError({"to_date": "to_date must be greater than from_date."})
+
+        return data
+
+           
 
 class StudentLeaveListSerializer(serializers.ModelSerializer):
     

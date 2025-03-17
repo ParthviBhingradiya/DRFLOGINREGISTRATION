@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-import uuid
+from django.core.exceptions import ValidationError
 
 class UserManager(BaseUserManager):
     def create_user(self, username, first_name, last_name, email, password=None, password2=None,role=None):
@@ -58,6 +58,7 @@ class ApplicationForm(models.Model):
     from_date = models.DateField() 
     to_date = models.DateField()
     status = models.CharField(max_length=10, choices=status, default='pending') 
+
 
     def __str__(self):
         return f"{self.program_name} at {self.university_name} by {self.user.username}"
